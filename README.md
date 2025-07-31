@@ -9,6 +9,9 @@ This project simulates Electronic Medical Record (EMR) data in a FHIR-like JSON 
 5. Time-series (Longitudinal encounter data per patient)
 
 
+HiveQL is used to conduct exploratory data analysis (EDA) across patient demographics, clinical diagnoses, medications, and lab results. The pipeline is designed to scale and can be extended to leverage cloud-based distributed computing (e.g., AWS EMR, Databricks, or GCP Dataproc) for real-world EMR volumes.
+
+
 ## Install Java:
 After installing Java, open a command prompt (CMD) and type the following:
 ```
