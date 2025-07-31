@@ -8,11 +8,31 @@ This project simulates Electronic Medical Record (EMR) data in a FHIR-like JSON 
 4. Output formats (CSV, FHIR, JSON, HL7, CCDA)
 5. Time-series (Longitudinal encounter data per patient)
 
+
+## Install Java:
+After installing Java, open a command prompt (CMD) and type the following:
+```
+where java # Tells you the location of java installation
+```
+
+Output should look like:
+```
+C:\Users\RANDOLPHL>where java
+C:\Program Files\Eclipse Adoptium\jdk-21.0.7.6-hotspot\bin\java.exe # Location 1
+C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
+```
+
 ## Getting started with Synthea:
 ```
 # Install Synthea (Java required)
 git clone https://github.com/synthetichealth/synthea.git
+```
+
+```
 cd synthea
+```
+
+```
 ./gradlew build check test
 ```
 
