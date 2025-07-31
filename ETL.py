@@ -5,7 +5,7 @@ from glob import glob
 
 
 # -----------------------------
-# Loading json files 
+# 1. Load Flat Patients JSON
 # -----------------------------
 
 with open("patients.json") as f:
@@ -33,7 +33,7 @@ df_json.to_csv("patients_flat.csv", index=False)
 
 
 # -----------------------------
-# Loading FHIR files 
+# 2. Load FHIR-style Individual Patient JSON Records
 # -----------------------------
 # Folder containing FHIR Patient JSON files (e.g., output/fhir/)
 FHIR_FOLDER = "output/fhir/"
@@ -74,3 +74,34 @@ for filepath in glob(os.path.join(FHIR_FOLDER, "Patient-*.json")):
 # Create and export DataFrame
 df_fhir = pd.DataFrame(records_FHIR)
 df_fhir.to_csv("patients_flat_fhir.csv", index=False)
+
+
+
+# ---------------------------------------
+# 3. Load Procedure Time-Series JSON Data
+# ---------------------------------------
+
+procedure_records = []
+for filepath in glob(os.path.join(FHIR_FOLDER, "Procedure-*.json")):
+    try:
+        with open(filepath) as f:
+            proc = json.load(f)
+    except Exception as e:
+        print(f"Error loading {filepath}: {e}")
+        continue
+
+    coding = proc.get("code", {}).get("coding", [{}])[0]
+
+    record = {
+        "procedure_id": proc.get("id"),
+        "patient_id": proc.get("subject", {}).get("reference", "").replace("Patient/", ""),
+        "encounter_id": proc.get("encounter", {}).get("reference", "").replace("Encounter/", ""),
+        "procedure_code": coding.get("code"),
+        "procedure_description": coding.get("display"),
+        "performed_date": proc.get("performedDateTime")
+    }
+
+    procedure_records.append(record)
+
+df_proc = pd.DataFrame(procedure_records)
+df_proc.to_csv("procedures_flat.csv", index=False)
