@@ -98,6 +98,7 @@ synthea Texas -p 1000 -a 20-65 -c hypertension
   
     
 
+## Starting pre-configured Hadoop ecosystem + Hive stack
 ```
 # Start pre-confiugred Hadoop + Hive stack
 # Open Windows PowerShell and type the following command:
