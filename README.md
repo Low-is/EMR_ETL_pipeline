@@ -15,11 +15,6 @@ After installing Java, open a command prompt (CMD) and type the following:
 where java # Tells you the location of java installation
 ```
 
-Add Java to PATH environment so Java commands can executed from any terminal
-```
-export JAVA_HOME=path/to/java
-export PATH=$JAVA_HOME/bin:$PATH
-```
 
 Output should look like:
 ```
@@ -27,6 +22,14 @@ C:\Users\RANDOLPHL>where java
 C:\Program Files\Eclipse Adoptium\jdk-21.0.7.6-hotspot\bin\java.exe # Location 1
 C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
 ```
+
+
+Add Java to PATH environment so Java commands can executed from any terminal
+```
+export JAVA_HOME=path/to/java
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
 
 ## Getting started with Synthea:
 ```
