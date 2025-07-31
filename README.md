@@ -13,6 +13,9 @@ HiveQL is used to conduct exploratory data analysis (EDA) across patient demogra
 
 
 ## Install Java:
+
+Note: This is for if you're building the Synthea Docker image after cloning the GitHub repo.
+
 After installing Java, open a command prompt (CMD) and type the following:
 ```
 where java # Tells you the location of java installation
@@ -28,8 +31,6 @@ C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
 
 
 Add Java to PATH environment so Java commands can be executed from any terminal
-
-This is for if you're building the Synthea Docker image after cloning the GitHub repo.
 
 Note: Make sure there are no spaces in the path to where Java is located as that may cause potential errors. Can either directly rename folders where java lives or create a symlink.
 ```
