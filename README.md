@@ -25,6 +25,24 @@ C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
 
 
 Add Java to PATH environment so Java commands can executed from any terminal
+Note: Make sure there are no spaces in the path to where Java is located as that may cause potential errors. Can either directly rename folders where java lives or create a symlink.
+```
+# Symlink in Git Bash or WSL:
+ln -s "/c/Program Files/Eclipse Adoptium/jdk-21-0.7.6-hotspot" /c/jdk21
+```
+
+```
+# Symlink in command prompt (cmd):
+mklink /D C:\jdk21 "C:\Program Files\Eclipse Adoptium\jdk-21.0.7.6-hotspot"
+```
+
+
+```
+# Symlink in Windows PowerShell:
+New-Item -ItemType SymbolicLink -Path "C:\jdk21" -Target "C:\Program Files\Eclipse Adoptium\jdk-21.0.7.6-hotspot"
+```
+
+
 ```
 export JAVA_HOME=path/to/java
 export PATH=$JAVA_HOME/bin:$PATH
