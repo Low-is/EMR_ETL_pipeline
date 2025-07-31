@@ -24,7 +24,7 @@ C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
 ```
 
 
-Add Java to PATH environment so Java commands can executed from any terminal
+Add Java to PATH environment so Java commands can be executed from any terminal
 Note: Make sure there are no spaces in the path to where Java is located as that may cause potential errors. Can either directly rename folders where java lives or create a symlink.
 ```
 # Symlink in Git Bash or WSL:
