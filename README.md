@@ -29,6 +29,8 @@ C:\Program Files (x86)\Common Files\Oracle\Java\java8path\java.exe # Location 2
 
 Add Java to PATH environment so Java commands can be executed from any terminal
 
+This is for if you're building the Synthea Docker image after cloning the GitHub repo.
+
 Note: Make sure there are no spaces in the path to where Java is located as that may cause potential errors. Can either directly rename folders where java lives or create a symlink.
 ```
 # Symlink in Git Bash or WSL:
@@ -53,18 +55,12 @@ export PATH=$JAVA_HOME/bin:$PATH
 ```
 
 
-## Getting started with Synthea:
-```
-# Install Synthea (Java required)
-git clone https://github.com/synthetichealth/synthea.git
-```
+## Getting started with Synthea via downloaded custom Docker file:
+### If using Synthea Docker file, Java will already by available in environment
+Go to [Synthea Toolkit](https://synthetichealth.github.io/spt/#/customizer) to download custom Synthea Docker file.
 
 ```
-cd synthea
-```
-
-```
-./gradlew build check test
+# Build docker image
 ```
 
 
