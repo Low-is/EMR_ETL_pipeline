@@ -5,4 +5,11 @@ Synthea custom parameters:
 # Age: 20-65
 # Condition: Hypertension
 
-docker run --rm -v $(pwd)/output:/synthea/output synthea Texas -p 1000 -a 20-65 -c hypertension
+
+# By default Synthea does not generate CCDA, CPCDA, CSV or Bulk FHIR (ndjson). Will need to adjust this file to activate these features.
+# Pull synthea.properties file from Synthea repo and edit output directories
+# Mount synthea.properties file inside the container, this will override the default config:
+docker run --rm \
+-v $(pwd)/output:/synthea/output synthea Texas -p 1000 -a 20-65 -c hypertension \
+-v $(pwd)/synthea.properties:/synthea/src/main/resources/synthea.properties \
+synthea Texas -p 1000 -a 20-65 -c hypertension
