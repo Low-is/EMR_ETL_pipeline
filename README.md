@@ -61,6 +61,7 @@ Go to [Synthea Toolkit](https://synthetichealth.github.io/spt/#/customizer) to d
 
 ```
 # Build docker image
+docker build -t synthea .
 ```
 
 
