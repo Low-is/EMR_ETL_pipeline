@@ -10,5 +10,5 @@ CREATE EXTERNAL TABLE emr_conditions (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 STORED AS TEXTFILE
-LOCATION '/user/hive/warehouse/emr/conditions'
+LOCATION '/user/hive/warehouse/emr_data/conditions'
 TBLPROPERTIES ("skip.header.line.count"="1");
