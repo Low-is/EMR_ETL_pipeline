@@ -1,0 +1,5 @@
+exporter.fhir.export = true
+exporter.csv.export = true
+exporter.json.export = true
+exporter.bulk_fhir.export = false
+exporter.ccda.export = false
