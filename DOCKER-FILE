@@ -1,0 +1,8 @@
+docker build -t synthea .
+
+Synthea custom parameters:
+# Location: Texas
+# Age: 20-65
+# Condition: Hypertension
+
+docker run --rm -v $(pwd)/output:/synthea/output synthea Texas -p 1000 -a 20-65 -c hypertension
