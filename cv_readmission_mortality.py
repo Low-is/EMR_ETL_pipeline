@@ -1,4 +1,10 @@
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score, classification_report
+
 
 base = r"C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output\csv"
 
@@ -40,7 +46,7 @@ print(f"Mortality rate: {mortality_rate: .2%}")
 
 
 ####################################
-# 30-Day Readmission
+# 30-DAY READMISSION
 ####################################
 encounters_cv["START"] = pd.to_datetime(encounters_cv["START"])
 encounters_cv = encounters_cv.sort_values(["PATIENT", "START"])
@@ -48,7 +54,7 @@ encounters_cv = encounters_cv.sort_values(["PATIENT", "START"])
 
 
 ####################################
-# Identify Readmission (creating function)
+# IDENTIFY READMISSION (CREATING FUNCTION)
 ####################################
 def has_30d_readmit(group):
     group = group.sort_values("START")
@@ -67,7 +73,58 @@ encounters_cv = encounters_cv.groupby("PATIENT").apply(has_30d_readmit)
 
 
 ####################################
-# Calculate readmission day
+# CALCULATE READMISSION DAY
 ####################################
 readmission_rate = encounters_cv["readmit_30d"].mean()
 print(f"30-day readmission rate: {readmission_rate:.2%}")
+
+
+
+####################################
+# PREPARING FOR MODELING/ANALYSIS
+####################################
+# Get first readmission per patient (or max)
+readmit_flags = encounters_cv.groupby("PATIENT")["readmit_30d"].max().reset_index()
+
+patients_cv_summary = patients_cv.merge(readmit_flags, left_on="Id", right_on="PATIENT", how="left")
+
+# Fill NaNs with 0 if patient had no readmissions
+patients_cv_summary["readmit_30d"] = patients_cv_summary["readmit_30d"].fillna(0).astype(int)
+
+# Feature engineering
+patients_cv_summary["num_conditions"] = conditions[conditions["PATIENT"].isin(cv_patients)].groupby("PATIENT").size().reindex(patients_cv_summary["Id"]).fillna(0)
+
+
+
+####################################
+# EDA
+####################################
+# Showing distribution of age, gender, and other covariates
+# Mortality rate and readmission rate stratified by age, gender, and comorbidities
+
+sns.histplot(patients_cv_summary["AGE"])
+plt.show()
+
+sns.barplot(x="GENDER", y="died", data=patients_cv_summary)
+plt.show()
+
+
+
+
+####################################
+# PREDICTIVE MODELING
+####################################
+# Building a random forest model to predict:
+# 30-day readmission
+# Mortality
+
+X = patients_cv_summary[["AGE", "num_conditions"]]  # add more features as needed
+y = patients_cv_summary["readmit_30d"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+rf = RandomForestClassifier()
+rf.fit(X_train, y_train)
+y_pred = rf.predict(X_test)
+
+print(classification_report(y_test, y_pred))
