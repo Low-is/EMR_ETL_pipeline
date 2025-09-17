@@ -14,10 +14,27 @@ observations = pd.read_csv(f"{base}/observations.csv")
 
 
 ####################################
+# CARDIOVASCULAR EVENT PATIENTS 
+####################################
+cv_conditions = conditions[
+    conditions["DESCRIPTON"].str.lower().str.contains(
+        "ischemic|heart failure|stroke"
+    )
+]
+
+cv_patients = cv_conditions["PATIENT"].unique()
+
+# Subset encounters and patients for these CV patients
+encounters_cv = encounters[encounters["PATIENT"].isin(cv_patients)]
+patients_cv = patients[patients["Id"].isin(cv_patients)]
+
+
+
+####################################
 # MORTALITY OUTCOME 
 ####################################
-patients["died"] = patients["DEATHDATE"].notnull().astype(int)
-mortality_rate = patients["died"].mean()
+patients_cv["died"] = patients_cv["DEATHDATE"].notnull().astype(int)
+mortality_rate = patients_cv["died"].mean()
 
 print(f"Mortality rate: {mortality_rate: .2%}")
 
@@ -25,8 +42,8 @@ print(f"Mortality rate: {mortality_rate: .2%}")
 ####################################
 # 30-Day Readmission
 ####################################
-encounters["START"] = pd.to_datetime(encounters["START"])
-encounters = encounter.sort_values(["PATIENT", "START"])
+encounters_cv["START"] = pd.to_datetime(encounters_cv["START"])
+encounters_cv = encounters_cv.sort_values(["PATIENT", "START"])
 
 
 
@@ -44,7 +61,7 @@ def has_30d_readmit(group):
     return group
 
 
-encounters = encounters.groupby("PATIENT").apply(has_30d_readmit)
+encounters_cv = encounters_cv.groupby("PATIENT").apply(has_30d_readmit)
 
 
 
@@ -52,5 +69,5 @@ encounters = encounters.groupby("PATIENT").apply(has_30d_readmit)
 ####################################
 # Calculate readmission day
 ####################################
-readmission_rate = encounters["readmit_30d"].mean()
+readmission_rate = encounters_cv["readmit_30d"].mean()
 print(f"30-day readmission rate: {readmission_rate:.2%}")
