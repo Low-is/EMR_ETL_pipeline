@@ -1,16 +1,29 @@
 import pandas as pd
 
-# Load all CSVs
-patients = pd.read_csv(r"path\to\patients.csv")
-encounters = pd.read_csv(r"path\to\encounters.csv")
-conditions = pd.read_csv(r"path\to\conditions.csv")
-meds = pd.read_csv(r"path\to\medications.csv")
-obs = pd.read_csv(r"path\to\observations.csv")
+base = r"C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output\csv"
 
-# Merge step by step
-df = encounters.merge(patients, left_on="patient", right_on="Id", how="left")\
-               .merge(conditions, on="encounter", how="left")\
-               .merge(meds, on="encounter", how="left")\
-               .merge(obs, on="encounter", how="left")
+####################################
+# LOADING DATA FROM OUTPUT DIRECTORY 
+####################################
+patients = pd.read_csv(f"{base}/patients.csv")
+encounters = pd.read_csv(f"{base}/encounters.csv")
+conditions = pd.read_csv(f"{base}/conditions.csv")
+procedures = pd.read_csv(f"{base}/procedures.csv")
+observations = pd.read_csv(f"{base}/observations.csv")
 
-df.to_csv("flat_emr.csv", index=False)
+
+
+####################################
+# MORTALITY OUTCOME 
+####################################
+patients["died"] = patients["DEATHDATE"].notnull().astype(int)
+mortality_rate = patients["died"].mean()
+
+print(f"Mortality rate: {mortality_rate: .2%}")
+
+
+####################################
+# 30-Day Readmission
+####################################
+encounters["START"] = pd.to_datetime(encounters["START"])
+encounters = encounter.sort_values(["PATIENT", "START"])
