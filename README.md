@@ -62,7 +62,7 @@ Go to [Synthea Toolkit](https://synthetichealth.github.io/spt/#/customizer) to d
 
 ```
 # Build docker image
-docker build -t synthea .
+docker build -t synthea -f Dockerfile .
 ```
 
 
@@ -70,10 +70,7 @@ docker build -t synthea .
 # By default Synthea does not generate CCDA, CPCDA, CSV or Bulk FHIR (ndjson). Will need to adjust this file to activate these features.
 # Pull synthea.properties file from Synthea repo and edit output directories
 # Mount synthea.properties file inside the container, this will override the default config:
-docker run --rm \
--v $(pwd)/output:/synthea/output synthea Texas -p 1000 -a 20-65 -c hypertension \
--v $(pwd)/synthea.properties:/synthea/src/main/resources/synthea.properties \
-synthea Texas -p 1000 -a 20-65 -c hypertension
+docker run --rm -v C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output:/output syntheadocker
 ```
 
 
