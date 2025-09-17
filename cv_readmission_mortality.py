@@ -115,7 +115,7 @@ plt.show()
 # PREDICTIVE MODELING
 ####################################
 # Building a random forest model to predict:
-# 30-day readmission
+# 30-day readmission: (1 = readmitted within 30 days, 0 = not)
 # Mortality
 
 X = patients_cv_summary[["AGE", "num_conditions"]]  # add more features as needed
