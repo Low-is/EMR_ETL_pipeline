@@ -1,15 +1,11 @@
-docker build -t synthea .
+FROM eclipse-temurin:20-jdk
 
-Synthea custom parameters:
-# Location: Texas
-# Age: 20-65
-# Condition: Hypertension
+# add --insecure for a quick fix if your network requires certificates
+# -L means follow redirects
+RUN curl -L -O https://github.com/synthetichealth/synthea/releases/download/master-branch-latest/synthea-with-dependencies.jar
 
-
-# By default Synthea does not generate CCDA, CPCDA, CSV or Bulk FHIR (ndjson). Will need to adjust this file to activate these features.
-# Pull synthea.properties file from Synthea repo and edit output directories
-# Mount synthea.properties file inside the container, this will override the default config:
-docker run --rm \
--v $(pwd)/output:/synthea/output synthea Texas -p 1000 -a 20-65 -c hypertension \
--v $(pwd)/synthea.properties:/synthea/src/main/resources/synthea.properties \
-synthea Texas -p 1000 -a 20-65 -c hypertension
+RUN printf 'exporter.csv.export = true\n\
+exporter.fhir.export = true\n\
+exporter.json.export = true \n' > custom.properties
+ 
+CMD java -jar synthea-with-dependencies.jar -p 1997 -c custom.properties
