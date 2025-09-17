@@ -3,84 +3,119 @@ import pandas as pd
 import os
 from glob import glob
 
+# -----------------------------
+# 0. Setup paths
+# -----------------------------
+FHIR_FOLDER = r"C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output\fhir"
+OUTPUT_FOLDER = r"C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output\csv"
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 # -----------------------------
-# 1. Load Flat Patients JSON
+# 1. Helper function for nested dicts
 # -----------------------------
-
-with open("patients.json") as f:
-    raw = json.load(f)
-
-records_json = []
-for patient_json in raw:
-    record = {
-        "id": patient_json["id"],
-        "family_name": patient_json["name"]["family"],
-        "given_name_1": patient_json["name"]["given"][0],
-        "given_name_2": patient_json["name"]["given"][1] if len(patient_json["name"]["given"]) > 1 else None,
-        "birth_date": patient_json["birthDate"],
-        "gender": patient_json["gender"],
-        "phone": next((x["value"] for x in patient_json["telecom"] if x["system"] == "phone"), None),
-        "email": next((x["value"] for x in patient_json["telecom"] if x["system"] == "email"), None),
-        "city": patient_json["address"]["city"],
-        "postal_code": patient_json["address"]["postalCode"]
-    }
-    records_json.append(record)
-
-df_json = pd.DataFrame(records_json)
-df_json.to_csv("patients_flat.csv", index=False)
-
-
+def get_nested(d, keys, default=None):
+    for key in keys:
+        if isinstance(d, dict):
+            d = d.get(key, default)
+        else:
+            return default
+    return d
 
 # -----------------------------
-# 2. Load FHIR-style Individual Patient JSON Records
+# 2. Flatten Patients
 # -----------------------------
-# Folder containing FHIR Patient JSON files (e.g., output/fhir/)
-FHIR_FOLDER = "output/fhir/"
-
-records_FHIR = []
+patient_records = []
 
 for filepath in glob(os.path.join(FHIR_FOLDER, "Patient-*.json")):
     try:
         with open(filepath) as f:
-            patient_FHIR = json.load(f)
+            patient = json.load(f)
     except Exception as e:
         print(f"Error loading {filepath}: {e}")
         continue
-        
 
-    # Extract patient fields safely
-    name = patient_FHIR.get("name", [{}])[0]
-    address = patient_FHIR.get("address", [{}])[0]
-    telecom = patient_FHIR.get("telecom", [])
+    name = patient.get("name", [{}])[0]
+    address = patient.get("address", [{}])[0]
+    telecom = patient.get("telecom", [])
 
     record = {
-        "id": patient_FHIR.get("id"),
-        "family_name": name.get("family"),
-        "given_name_1": name.get("given", [None])[0],
-        "given_name_2": name.get("given", [None, None])[1] if len(name.get("given", [])) > 1 else None,
-        "birth_date": patient_FHIR.get("birthDate"),
-        "gender": patient_FHIR.get("gender"),
+        "patient_id": patient.get("id"),
+        "family_name": get_nested(name, ["family"]),
+        "given_name_1": get_nested(name, ["given", 0]),
+        "given_name_2": get_nested(name, ["given", 1]),
+        "birth_date": patient.get("birthDate"),
+        "gender": patient.get("gender"),
         "phone": next((x.get("value") for x in telecom if x.get("system") == "phone"), None),
         "email": next((x.get("value") for x in telecom if x.get("system") == "email"), None),
-        "city": address.get("city"),
-        "postal_code": address.get("postalCode"),
-        "state": address.get("state"),
-        "country": address.get("country")
+        "city": get_nested(address, ["city"]),
+        "state": get_nested(address, ["state"]),
+        "postal_code": get_nested(address, ["postalCode"]),
+        "country": get_nested(address, ["country"]),
+        "death_date": patient.get("deceasedDateTime"),
+        "died": int(patient.get("deceasedDateTime") is not None)
     }
+    patient_records.append(record)
 
-    records_FHIR.append(record)
+df_patients = pd.DataFrame(patient_records)
+df_patients.to_csv(os.path.join(OUTPUT_FOLDER, "patients_flat.csv"), index=False)
+print(f"Saved {len(df_patients)} patients.")
 
-# Create and export DataFrame
-df_fhir = pd.DataFrame(records_FHIR)
-df_fhir.to_csv("patients_flat_fhir.csv", index=False)
+# -----------------------------
+# 3. Flatten Encounters
+# -----------------------------
+encounter_records = []
+for filepath in glob(os.path.join(FHIR_FOLDER, "Encounter-*.json")):
+    try:
+        with open(filepath) as f:
+            enc = json.load(f)
+    except Exception as e:
+        print(f"Error loading {filepath}: {e}")
+        continue
 
+    record = {
+        "encounter_id": enc.get("id"),
+        "patient_id": get_nested(enc, ["subject", "reference"], "").replace("Patient/", ""),
+        "start": enc.get("period", {}).get("start"),
+        "stop": enc.get("period", {}).get("end"),
+        "type": get_nested(enc, ["type", 0, "coding", 0, "code"]),
+        "class": get_nested(enc, ["class", "code"])
+    }
+    encounter_records.append(record)
 
+df_encounters = pd.DataFrame(encounter_records)
+df_encounters.to_csv(os.path.join(OUTPUT_FOLDER, "encounters_flat.csv"), index=False)
+print(f"Saved {len(df_encounters)} encounters.")
 
-# ---------------------------------------
-# 3. Load Procedure Time-Series JSON Data
-# ---------------------------------------
+# -----------------------------
+# 4. Flatten Conditions
+# -----------------------------
+condition_records = []
+for filepath in glob(os.path.join(FHIR_FOLDER, "Condition-*.json")):
+    try:
+        with open(filepath) as f:
+            cond = json.load(f)
+    except Exception as e:
+        print(f"Error loading {filepath}: {e}")
+        continue
 
+    coding = get_nested(cond, ["code", "coding", 0], {})
+    record = {
+        "condition_id": cond.get("id"),
+        "patient_id": get_nested(cond, ["subject", "reference"], "").replace("Patient/", ""),
+        "encounter_id": get_nested(cond, ["encounter", "reference"], "").replace("Encounter/", ""),
+        "condition_code": coding.get("code"),
+        "condition_description": coding.get("display"),
+        "onset_date": cond.get("onsetDateTime")
+    }
+    condition_records.append(record)
+
+df_conditions = pd.DataFrame(condition_records)
+df_conditions.to_csv(os.path.join(OUTPUT_FOLDER, "conditions_flat.csv"), index=False)
+print(f"Saved {len(df_conditions)} conditions.")
+
+# -----------------------------
+# 5. Flatten Procedures
+# -----------------------------
 procedure_records = []
 for filepath in glob(os.path.join(FHIR_FOLDER, "Procedure-*.json")):
     try:
@@ -90,18 +125,37 @@ for filepath in glob(os.path.join(FHIR_FOLDER, "Procedure-*.json")):
         print(f"Error loading {filepath}: {e}")
         continue
 
-    coding = proc.get("code", {}).get("coding", [{}])[0]
-
+    coding = get_nested(proc, ["code", "coding", 0], {})
     record = {
         "procedure_id": proc.get("id"),
-        "patient_id": proc.get("subject", {}).get("reference", "").replace("Patient/", ""),
-        "encounter_id": proc.get("encounter", {}).get("reference", "").replace("Encounter/", ""),
+        "patient_id": get_nested(proc, ["subject", "reference"], "").replace("Patient/", ""),
+        "encounter_id": get_nested(proc, ["encounter", "reference"], "").replace("Encounter/", ""),
         "procedure_code": coding.get("code"),
         "procedure_description": coding.get("display"),
         "performed_date": proc.get("performedDateTime")
     }
-
     procedure_records.append(record)
 
-df_proc = pd.DataFrame(procedure_records)
-df_proc.to_csv("procedures_flat.csv", index=False)
+df_procedures = pd.DataFrame(procedure_records)
+df_procedures.to_csv(os.path.join(OUTPUT_FOLDER, "procedures_flat.csv"), index=False)
+print(f"Saved {len(df_procedures)} procedures.")
+
+# -----------------------------
+# 6. Feature Engineering Example
+# -----------------------------
+# Age at first encounter
+df_patients["birth_date"] = pd.to_datetime(df_patients["birth_date"])
+df_encounters["start"] = pd.to_datetime(df_encounters["start"])
+first_encounter = df_encounters.groupby("patient_id")["start"].min().reset_index()
+df_patients = df_patients.merge(first_encounter, left_on="patient_id", right_on="patient_id", how="left")
+df_patients["age_at_first_encounter"] = (df_patients["start"] - df_patients["birth_date"]).dt.days // 365
+
+# Number of conditions per patient
+df_patients["num_conditions"] = df_conditions.groupby("patient_id").size().reindex(df_patients["patient_id"]).fillna(0).astype(int)
+
+# Number of procedures per patient
+df_patients["num_procedures"] = df_procedures.groupby("patient_id").size().reindex(df_patients["patient_id"]).fillna(0).astype(int)
+
+# Save enriched patient table
+df_patients.to_csv(os.path.join(OUTPUT_FOLDER, "patients_features.csv"), index=False)
+print("Saved patients_features.csv with enriched attributes.")
