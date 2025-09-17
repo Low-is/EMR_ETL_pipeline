@@ -128,3 +128,36 @@ rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 
 print(classification_report(y_test, y_pred))
+
+
+
+
+####################################
+# PLOTTING RANDOM FOREST MODEL
+####################################
+# 1. Compute ROC curve
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+auc = roc_auc_score(y_test, y_prob)
+
+# 2. Find optimal threshold for max sensitivity + specificity
+# Sensitivity = TPR, Specificity = 1 - FPR
+optimal_idx = (tpr - fpr).argmax()
+optimal_threshold = thresholds[optimal_idx]
+sensitivity = tpr[optimal_idx]
+specificity = 1 - fpr[optimal_idx]
+
+# 3. Plot ROC curve
+plt.figure(figsize=(8,6))
+plt.plot(fpr, tpr, label=f'ROC curve (AUC = {auc:.2f})', color='blue', linewidth=2)
+plt.plot([0,1], [0,1], 'k--', linewidth=1)
+
+# 4. Annotate sensitivity and specificity
+plt.text(0.6, 0.2, f'Sensitivity = {sensitivity:.2f}\nSpecificity = {specificity:.2f}', 
+         bbox=dict(facecolor='white', alpha=0.5), fontsize=12)
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Random Forest ROC Curve')
+plt.legend(loc='lower right')
+plt.grid(alpha=0.3)
+plt.show()
