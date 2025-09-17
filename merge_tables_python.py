@@ -27,3 +27,30 @@ print(f"Mortality rate: {mortality_rate: .2%}")
 ####################################
 encounters["START"] = pd.to_datetime(encounters["START"])
 encounters = encounter.sort_values(["PATIENT", "START"])
+
+
+
+####################################
+# Identify Readmission (creating function)
+####################################
+def has_30d_readmit(group):
+    group = group.sort_values("START")
+    readmit = [0] * len(group)
+    for i in range(len(group)-1):
+        delta = (group.iloc[i+1]["START"] - group.iloc[i]["STOP"]).days
+        if 0 < delta <= 30:
+            readmit[i] = 1
+    group["readmit_30d"] = readmit
+    return group
+
+
+encounters = encounters.groupby("PATIENT").apply(has_30d_readmit)
+
+
+
+
+####################################
+# Calculate readmission day
+####################################
+readmission_rate = encounters["readmit_30d"].mean()
+print(f"30-day readmission rate: {readmission_rate:.2%}")
