@@ -70,6 +70,7 @@ docker build -t synthea -f Dockerfile .
 # By default Synthea does not generate CCDA, CPCDA, CSV or Bulk FHIR (ndjson). Will need to adjust this file to activate these features.
 # Pull synthea.properties file from Synthea repo and edit output directories
 # Mount synthea.properties file inside the container, this will override the default config:
+
 docker run --rm -v C:\Users\RANDOLPHL\Documents\Predicting_30day_readmission_and_mortality_for_CV_events\docker_output:/output syntheadocker
 ```
 
